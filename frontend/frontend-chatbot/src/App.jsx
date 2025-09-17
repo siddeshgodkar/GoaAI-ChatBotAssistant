@@ -25,7 +25,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="border-t border-gray-800 pt-4 text-xs text-gray-400">
-          GoaAI v1.0
+          GoaAI v2.0
         </div>
       </aside>
 
