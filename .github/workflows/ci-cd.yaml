@@ -47,7 +47,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and Docker Images
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest ./frontend 
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest ./backend 
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest ./frontend/frontend-chatbot 
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest ./chatbot-app/backend 
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest
