@@ -11,8 +11,6 @@ services:
       - PYTHONUNBUFFERED=1
     networks:
       - chatbot-net
-    .env_file:
-      - ./backend/.env
 
   frontend:
     build: ./frontend/frontend-chatbot
