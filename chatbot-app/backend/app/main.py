@@ -10,12 +10,18 @@ from app.api.route import router
 
 # app = Flask(__name__)
 
+origins = [
+    "http://43.204.23.232",     # your frontend
+    "http://localhost:5173",    # useful for local testing
+    "*"                         # allow all (temporary, not recommended for prod)
+]
+
 app = FastAPI()
 
 # Allow frontend to connect (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
