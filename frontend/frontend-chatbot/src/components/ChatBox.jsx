@@ -20,7 +20,7 @@ export default function ChatBox() {
     setIsTyping(true);
 
     try {
-      const res = await axios.post('http://43.204.23.232:8000/api/chat', { message: input });
+      const res = await axios.post('http://35.154.196.104:8000/api/chat', { message: input });
       setMessages((m) => [...m, { sender: 'bot', text: res.data.reply }]);
     } catch (err) {
       setMessages((m) => [...m, { sender: 'bot', text: "⚠ Error sending message" }]);

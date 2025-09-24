@@ -11,7 +11,7 @@ from app.api.route import router
 # app = Flask(__name__)
 
 origins = [
-    "http://43.204.23.232",     # your frontend
+    "http://35.154.196.104",     # your frontend
     "http://localhost:5173",    # useful for local testing
     "*"                         # allow all (temporary, not recommended for prod)
 ]
