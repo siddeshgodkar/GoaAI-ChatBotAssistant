@@ -63,5 +63,5 @@ jobs:
             git pull origin main
             export GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
             export LLAMA_API_URL=${{ secrets.LLAMA_API_URL }}
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose down
+            docker compose up -d --build
