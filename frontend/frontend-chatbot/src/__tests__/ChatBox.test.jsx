@@ -1,7 +1,6 @@
 import {render, screen} from "@testing-library/react";
 import '@testing-library/jest-dom';
-import App from "../App";
-import ChatBox from "../components/chatBox";
+import ChatBox from "../components/ChatBox";
 
 beforeAll(() => {
   // mock scrollIntoView so jsdom doesn't crash
