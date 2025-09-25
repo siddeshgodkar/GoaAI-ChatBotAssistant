@@ -5,5 +5,5 @@ requests
 uvicorn
 fastapi
 pytest
-htppx
+httpx
 prometheus-client
