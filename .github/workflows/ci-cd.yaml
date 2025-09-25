@@ -28,8 +28,8 @@ jobs:
         run: |
           cd chatbot-app/backend
           python -m pip install --upgrade pip
-          pip install -r requirement.txt
-          pytest chatbot-app/backend/tests
+          pip install -r requirements.txt
+          pytest tests
 
         #Frontend (React + Vite)
       - name: Set up Node.js
@@ -42,7 +42,7 @@ jobs:
           cd frontend/frontend-chatbot
           npm install
           npm run build
-          npm test -- --watchAll=false
+          npm test -- --run
 
       # Docker build & Push, { { this is placeholder syntax}}
       - name: Log in to Dockerhub
