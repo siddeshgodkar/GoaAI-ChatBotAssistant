@@ -42,7 +42,7 @@ jobs:
           cd frontend/frontend-chatbot
           npm install
           npm run build
-          npm test -- --run
+          npm test:ci
 
       # Docker build & Push, { { this is placeholder syntax}}
       - name: Log in to Dockerhub
