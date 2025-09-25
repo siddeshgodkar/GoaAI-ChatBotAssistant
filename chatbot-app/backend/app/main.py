@@ -15,7 +15,7 @@ from prometheus_client import Counter, generate_latest
 
 
 origins = [
-    "http://13.201.53.129",     # your frontend
+    "http://35.154.28.24",     # your frontend
     "http://localhost:5173",    # useful for local testing
     "*"                         # allow all (temporary, not recommended for prod)
 ]
