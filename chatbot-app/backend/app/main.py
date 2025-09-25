@@ -5,10 +5,14 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.route import router
+from prometheus_client import Counter, generate_latest
 
 # from routes.maps import maps_bp
 
 # app = Flask(__name__)
+
+
+
 
 origins = [
     "http://13.127.42.140",     # your frontend
@@ -17,6 +21,18 @@ origins = [
 ]
 
 app = FastAPI()
+
+REQUEST_COUNT = Counter("request_count", "Total number of requests")
+
+@app.middleware("http")
+async def count_requests(request, call_next):
+    REQUEST_COUNT.inc()
+    response = await call_next(request)
+    return response
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type="text/plain")
 
 # Allow frontend to connect (CORS)
 app.add_middleware(

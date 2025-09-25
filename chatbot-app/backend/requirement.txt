@@ -4,3 +4,6 @@ python-dotenv
 requests
 uvicorn
 fastapi
+pytest
+htppx
+prometheus-client
