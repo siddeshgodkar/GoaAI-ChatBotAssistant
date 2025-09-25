@@ -29,7 +29,7 @@ jobs:
           cd chatbot-app/backend
           python -m pip install --upgrade pip
           pip install -r requirement.txt
-          pytest backend/tests
+          pytest chatbot-app/backend/tests
 
         #Frontend (React + Vite)
       - name: Set up Node.js
