@@ -40,6 +40,17 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    port:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
   #  # Optional: PostgreSQL Database
   # db:
   #   image: postgres:15
