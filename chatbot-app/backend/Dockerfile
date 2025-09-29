@@ -7,11 +7,12 @@ WORKDIR /app
 # Copy requirements first for caching
 COPY requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and install dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend app code (only app/ folder and other files like main.py, api/, etc.)
-COPY app/ /app/app
+# Copy the full backend code (app, tests, configs, etc.)
+COPY . .
 
 # Expose backend port
 EXPOSE 8000
