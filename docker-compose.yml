@@ -4,18 +4,18 @@ services:
       context: ./chatbot-app/backend
       dockerfile: Dockerfile
     container_name: chatbot-backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       GROQ_API_KEY: ${GROQ_API_KEY}
       LLAMA_API_URL: ${LLAMA_API_URL}
       PYTHONUNBUFFERED: 1
+    networks:
+      - chatbot-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - chatbot-net
 
   frontend:
     build: ./frontend/frontend-chatbot
@@ -27,6 +27,11 @@ services:
         condition: service_healthy
     networks:
       - chatbot-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   prometheus:
     image: prom/prometheus
@@ -37,6 +42,11 @@ services:
       - "9090:9090"
     networks:
       - chatbot-net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   grafana:
     image: grafana/grafana
@@ -44,9 +54,15 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
     networks:
       - chatbot-net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   nginx:
     image: nginx:alpine
@@ -56,8 +72,14 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
     networks:
       - chatbot-net
 
