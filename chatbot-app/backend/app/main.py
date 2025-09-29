@@ -1,7 +1,7 @@
 # from flask import Flask, render_template
 # from routes.chatbot import chatbot_bp
 from flask_cors import CORS
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Request
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.route import router
@@ -23,17 +23,28 @@ origins = [
 
 app = FastAPI()
 
-REQUEST_COUNT = Counter("request_count", "Total number of requests")
+# Example counter for total requests
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint"])
 
+
+# Middleware to count requests
 @app.middleware("http")
-async def count_requests(request, call_next):
-    REQUEST_COUNT.inc()
+async def count_requests(request: Request, call_next):
     response = await call_next(request)
+    REQUEST_COUNT.labels(method=request.method, endpoint=request.url.path).inc()
     return response
 
+
+# Metrics endpoint for Prometheus
 @app.get("/metrics")
 def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# Example test endpoint
+@app.get("/ping")
+def ping():
+    return {"msg": "pong"}
 
 # Allow frontend to connect (CORS)
 app.add_middleware(
