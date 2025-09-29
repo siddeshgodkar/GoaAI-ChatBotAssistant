@@ -41,6 +41,11 @@ jobs:
           npm run build
           npm run test:ci
 
+      - name: Reset untracked files (force GitHub version)
+        run: |
+          git fetch --all
+          git reset --hard origin/main
+
       # Docker build & push
       - name: Log in to DockerHub
         uses: docker/login-action@v2
