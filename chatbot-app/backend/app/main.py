@@ -5,7 +5,7 @@ from fastapi import FastAPI, Response
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.route import router
-from prometheus_client import Counter, generate_latest
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 # from routes.maps import maps_bp
 
@@ -33,7 +33,7 @@ async def count_requests(request, call_next):
 
 @app.get("/metrics")
 def metrics():
-    return Response(generate_latest(), media_type="text/plain")
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # Allow frontend to connect (CORS)
 app.add_middleware(
