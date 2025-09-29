@@ -4,7 +4,7 @@ services:
       context: ./chatbot-app/backend
       dockerfile: Dockerfile
     container_name: chatbot-backend
-    command: uvicorn app.app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       GROQ_API_KEY: ${GROQ_API_KEY}
       LLAMA_API_URL: ${LLAMA_API_URL}
