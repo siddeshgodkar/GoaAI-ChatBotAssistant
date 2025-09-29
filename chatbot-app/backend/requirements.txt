@@ -3,7 +3,7 @@ flask-cors
 python-dotenv
 requests
 uvicorn
-fastapi
+fastapi==0.116.1
 pytest
 httpx
-prometheus-client
+prometheus_client==0.23.1
