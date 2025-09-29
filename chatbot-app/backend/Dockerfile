@@ -11,8 +11,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Copy the full backend code (app, tests, configs, etc.)
-COPY . .
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY app/ /app/app
 
 # Expose backend port
 EXPOSE 8000
