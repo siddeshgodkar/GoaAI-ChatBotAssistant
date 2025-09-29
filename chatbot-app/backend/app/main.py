@@ -15,7 +15,7 @@ from prometheus_client import Counter, generate_latest
 
 
 origins = [
-    "http://goaaichatbot.work.gd"
+    "http://13.204.193.171",
     "http://35.154.28.24",     # your frontend
     "http://localhost:5173",    # useful for local testing
     "*"                         # allow all (temporary, not recommended for prod)
