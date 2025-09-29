@@ -49,6 +49,11 @@ services:
     depends_on:
       - frontend
       - backend
+      - grafana
+      - prometheus
+    networks:
+      - chatbot-net
+
   #  # Optional: PostgreSQL Database
   # db:
   #   image: postgres:15
