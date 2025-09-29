@@ -5,22 +5,30 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot-backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    environment:
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      LLAMA_API_URL: ${LLAMA_API_URL}
-      PYTHONUNBUFFERED: 1
+    env_file:
+      - ./chatbot-app/backend/.env
+    ports:
+      - "8000:8000" # Optional: for direct debugging
     networks:
       - chatbot-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   frontend:
     build: ./frontend/frontend-chatbot
     container_name: chatbot-frontend
     expose:
       - "80"
-    depends_on:
-      - backend
     networks:
       - chatbot-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   prometheus:
     image: prom/prometheus
@@ -52,8 +60,6 @@ services:
     depends_on:
       - frontend
       - backend
-      - grafana
-      - prometheus
     networks:
       - chatbot-net
 

@@ -8,7 +8,7 @@ origins = [
     "http://13.204.193.171",    # backend IP (example)
     "http://35.154.28.24",      # frontend IP (example)
     "http://localhost:5173",    # local dev
-    "*"                         # ⚠️ only for dev/testing
+    "*"                         # only for dev/testing
 ]
 
 app = FastAPI()
