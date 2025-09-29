@@ -9,7 +9,6 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY}
       LLAMA_API_URL: ${LLAMA_API_URL}
       PYTHONUNBUFFERED: 1
-
     networks:
       - chatbot-net
 
@@ -27,9 +26,11 @@ services:
     image: prom/prometheus
     container_name: prometheus
     volumes:
-      - "./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yaml"
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - chatbot-net
 
   grafana:
     image: grafana/grafana
@@ -38,6 +39,8 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+    networks:
+      - chatbot-net
 
   nginx:
     image: nginx:alpine
@@ -54,23 +57,5 @@ services:
     networks:
       - chatbot-net
 
-  #  # Optional: PostgreSQL Database
-  # db:
-  #   image: postgres:15
-  #   container_name: chatbot-db
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: chatbot
-  #     POSTGRES_PASSWORD: chatbot123
-  #     POSTGRES_DB: chatbotdb
-  #   volumes:
-  #     - db_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - chatbot-net
-
 networks:
   chatbot-net: {}
-# volumes:
-#   db_data: {}
