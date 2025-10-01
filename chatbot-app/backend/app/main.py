@@ -2,6 +2,8 @@ from fastapi import FastAPI, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from app.api.route import router
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 # Allowed origins
 origins = [
@@ -16,6 +18,10 @@ app = FastAPI()
 # Prometheus Counter
 REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint"])
 
+
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app)
 # Middleware to count requests
 @app.middleware("http")
 async def count_requests(request: Request, call_next):
