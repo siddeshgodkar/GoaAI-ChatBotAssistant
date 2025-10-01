@@ -18,10 +18,9 @@ app = FastAPI()
 # Prometheus Counter
 REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method", "endpoint"])
 
+# Initialize metrics right away
+Instrumentator().instrument(app).expose(app)
 
-@app.on_event("startup")
-async def startup():
-    Instrumentator().instrument(app).expose(app)
 # Middleware to count requests
 @app.middleware("http")
 async def count_requests(request: Request, call_next):
