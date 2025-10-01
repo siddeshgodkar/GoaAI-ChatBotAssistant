@@ -29,6 +29,9 @@ async def count_requests(request: Request, call_next):
     REQUEST_COUNT.labels(method=request.method, endpoint=request.url.path).inc()
     return response
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 # Metrics endpoint for Prometheus
 @app.get("/metrics")
 def metrics():
