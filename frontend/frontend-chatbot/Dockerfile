@@ -2,10 +2,10 @@
 FROM node:22-alpine as build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci --no-audit
 COPY . .
 RUN npm run build
 
 # Stage 2: Serve
-FROM nginx:alpine
+FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html

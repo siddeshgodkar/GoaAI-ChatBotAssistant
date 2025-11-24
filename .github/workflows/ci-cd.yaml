@@ -10,12 +10,18 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # ---------------------------
       # Backend (Python)
+      # ---------------------------
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -28,16 +34,36 @@ jobs:
           pip install -r requirements.txt
           PYTHONPATH=. pytest tests
 
+      # ---------------------------
       # Frontend (React + Vite)
-      - name: Set up Node.js
+      # ---------------------------
+      - name: Set up Node.js (with npm cache)
         uses: actions/setup-node@v4
         with:
           node-version: "22.14.0"
+          cache: "npm"
+          cache-dependency-path: frontend/frontend-chatbot/package-lock.json
 
-      - name: Install frontend dependencies and run tests
+      - name: Show disk usage (diagnostic)
         run: |
-          cd frontend/frontend-chatbot
-          npm install
+          echo "Disk usage before frontend steps:"
+          df -h
+          du -hsx /* 2>/dev/null | sort -rh | head -20 || true
+
+      - name: Clean runner caches to free space
+        run: |
+          sudo apt-get update || true
+          sudo apt-get clean || true
+          rm -rf /tmp/* || true
+          rm -rf ~/.npm/_cacache || true
+          npm cache clean --force || true
+          echo "Disk usage after cleanup:"
+          df -h
+
+      - name: Install frontend dependencies and run tests (use npm ci)
+        working-directory: frontend/frontend-chatbot
+        run: |
+          npm ci --no-audit --prefer-offline
           npm run build
           npm run test:ci
 
@@ -46,23 +72,42 @@ jobs:
           git fetch --all
           git reset --hard origin/main
 
+      # ---------------------------
       # Docker build & push
+      # ---------------------------
       - name: Log in to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker images
+      - name: Prune Docker builder caches and free space (safe)
         run: |
-          docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest ./frontend/frontend-chatbot
-          docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest ./chatbot-app/backend
+          echo "Docker disk usage before prune:"
+          docker system df || true
+          # prune everything - reclaim space on runner (safe in ephemeral runner)
+          docker system prune -af --volumes || true
+          echo "Docker disk usage after prune:"
+          docker system df || true
+          df -h
+
+      - name: Build and push Docker images
+        env:
+          DOCKER_BUILDKIT: 1
+        run: |
+          # Build frontend image (multi-stage Dockerfile recommended)
+          docker build --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest ./frontend/frontend-chatbot
+          # Build backend image
+          docker build --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest ./chatbot-app/backend
+          # Push images
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest
 
+      # ---------------------------
       # Deploy on EC2 server
+      # ---------------------------
       - name: Deploy on Server
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.3.2
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -72,13 +117,13 @@ jobs:
             cd ~/GoaAI-ChatBotAssistant
             git pull origin main
 
-            # Save secrets into backend .env file
-            cat <<EOF > chatbot-app/backend/.env
+            # Save secrets into backend .env file (overwrite)
+            cat <<'EOF' > chatbot-app/backend/.env
             GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
             LLAMA_API_URL=${{ secrets.LLAMA_API_URL }}
             EOF
 
             # Rebuild & restart services
             docker compose down
-            docker compose build --no-cache
+            docker compose build --pull
             docker compose up -d --remove-orphans
