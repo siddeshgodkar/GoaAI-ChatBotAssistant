@@ -107,7 +107,7 @@ jobs:
       # Deploy on EC2 server
       # ---------------------------
       - name: Deploy on Server
-        uses: appleboy/ssh-action@v1.3.2
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
