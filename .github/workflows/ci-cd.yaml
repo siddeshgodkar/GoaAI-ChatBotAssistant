@@ -85,7 +85,6 @@ jobs:
         run: |
           echo "Docker disk usage before prune:"
           docker system df || true
-          # prune everything - reclaim space on runner (safe in ephemeral runner)
           docker system prune -af --volumes || true
           echo "Docker disk usage after prune:"
           docker system df || true
@@ -95,35 +94,47 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
         run: |
-          # Build frontend image (multi-stage Dockerfile recommended)
           docker build --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest ./frontend/frontend-chatbot
-          # Build backend image
           docker build --pull -t ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest ./chatbot-app/backend
-          # Push images
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/chatbot-backend:latest
 
       # ---------------------------
-      # Deploy on EC2 server
+      # Deploy on EC2 server via SSH (no container action)
       # ---------------------------
-      - name: Deploy on Server
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
-            cd ~/GoaAI-ChatBotAssistant
-            git pull origin main
+      - name: Deploy on Server via SSH
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          LLAMA_API_URL: ${{ secrets.LLAMA_API_URL }}
+        run: |
+          set -euo pipefail
 
-            # Save secrets into backend .env file (overwrite)
-            cat <<'EOF' > chatbot-app/backend/.env
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-            LLAMA_API_URL=${{ secrets.LLAMA_API_URL }}
-            EOF
+          # create ssh dir and write private key
+          mkdir -p ~/.ssh
+          echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-            # Rebuild & restart services
-            docker compose down
-            docker compose build --pull
-            docker compose up -d --remove-orphans
+          # optional: add github runner ip to known_hosts or disable strict checking (here disabled for convenience)
+          SSH_OPTS='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=60'
+
+          # Run commands on remote server
+          ssh $SSH_OPTS -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_IP /bin/bash <<'EOF'
+          set -e
+          cd ~/GoaAI-ChatBotAssistant || exit 1
+          git fetch --all
+          git reset --hard origin/main
+
+          # write .env file (overwrite)
+          cat > chatbot-app/backend/.env <<'EOT'
+          GROQ_API_KEY=${GROQ_API_KEY}
+          LLAMA_API_URL=${LLAMA_API_URL}
+          EOT
+
+          # Rebuild & restart services
+          docker compose down || true
+          docker compose build --pull
+          docker compose up -d --remove-orphans
+          EOF
